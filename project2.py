@@ -8,12 +8,25 @@
 
 
 import random
-import matplotlib.pyplot
+import matplotlib.pyplot as plott
+import matplotlib.animation as anim
+import time
 
-roomSize=15
+roomSize=50
 numberOfPeople=50
 peopleLocation=0
 zombieLocation=0
+
+fig=plott.figure()
+ax1=fig.add_subplot(1,1,1)
+axes = plott.gca()
+axes.set_xlim([0,roomSize])
+axes.set_ylim([0,roomSize])
+plott.ion()
+#plott.show()
+#change 50 to roomsize
+
+
 
 def createRoom():
 	randomLocation=[0,0]
@@ -41,6 +54,7 @@ def generateNewLocation(peopleLocation2):
 					#print newLocation
 					break
 
+	print "New Location Set"
 	return peopleLocation2
 
 def checkInfected(people, zombie):
@@ -66,16 +80,38 @@ def checkInfected(people, zombie):
 						personNumber+=-2
 						#raise SystemExit
 
+def plotting(i):
+	xcoordpeople=[]
+	ycoordpeople=[]
+	xcoordzombie=[]
+	ycoordzombie=[]
+
+	ax1.clear()
+	for y in peopleLocation:
+		xcoordpeople.append(y[0])
+		ycoordpeople.append(y[1])
+	#print peopleLocation
+	for x in zombieLocation:
+		xcoordzombie.append(x[0])
+		ycoordzombie.append(x[1])
+	
+
+	ax1.scatter(xcoordpeople, ycoordpeople)
+	ax1.scatter(xcoordzombie, ycoordzombie,c="red")
+	plott.draw()	
+
+
 #the locations of all noninfected people
 peopleLocation=createRoom()
+
 #the location of all infected people
 zombieLocation=[peopleLocation[random.randint(0,numberOfPeople-1)]]
-#roomSize=70
 
 #Initially, we just set the number of time steps to 1. You can change this
 for timeStep in range(7000):
 	#Generate New Coordinates ie make everyone move
 	peopleLocation=generateNewLocation(peopleLocation)
+	zombieLocation=generateNewLocation(zombieLocation)
 	#print "Step one\n\nLocation of all people:", peopleLocation, "\n\n"
 
 	#Check if anyone is infected
@@ -85,6 +121,12 @@ for timeStep in range(7000):
 	if len(peopleLocation) == 1:
 		print "Time to infected:", timeStep 
 		break
+
+	#Plotting the points on a scatter plot
+	#Comment out to let program run much faster
+	plott.show()#
+	plotting(1)#
+
 
 print len(peopleLocation),"*****************"
 print peopleLocation,

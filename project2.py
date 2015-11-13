@@ -12,11 +12,16 @@ import matplotlib.pyplot as plott
 import matplotlib.animation as anim
 import time
 
-roomSize=50
-numberOfPeople=50
+#Change any of these variables to change the parameters of the experiment
+roomSize=150		#default 100
+numberOfPeople=100	#default 100
+infectionRadius=3	#default 3
+infectionChance=70	#default 70 (must be between 0 and 100)
+personalSpace=3		#default 3
+
 peopleLocation=0
 zombieLocation=0
-vaccLocation=[[25,25],[25,26],[26,25],[26,26]]
+vaccLocation=[]
 
 fig=plott.figure()
 ax1=fig.add_subplot(1,1,1)
@@ -47,15 +52,28 @@ def createRoom():
 def generateNewLocation(peopleLocation2):
 	newLocation=[0,1]
 	for personNumber in range(len(peopleLocation2)-1):
+		breakLoop=0
 		while 1:
 			newLocation[0]=peopleLocation2[personNumber][0]+random.randint(-2,2)
 			newLocation[1]=peopleLocation2[personNumber][1]+random.randint(-2,2)
 			if newLocation[0]<roomSize-1 and newLocation[0]>-1:
 				if newLocation[1]<roomSize-1 and newLocation[1]>-1:
-					peopleLocation2[personNumber][0]=newLocation[0]
-					peopleLocation2[personNumber][1]=newLocation[1]
+					#If it's in the room and if it does NOT collide then break
+					for y in range(-1*personalSpace, personalSpace):
+						for x in range(-1*personalSpace, personalSpace):
+							#Go through every person and see if the coordinate equals their coordinate
+							for check in peopleLocation2:
+								if check[0]==newLocation[0]+x:
+									if check[1]==newLocation[1]+y:
+										breakLoop+=1
+										print check
 					#print newLocation
-					break
+					if breakLoop<2: 
+						print "broke"
+						peopleLocation2[personNumber][0]=newLocation[0]
+						peopleLocation2[personNumber][1]=newLocation[1]
+						break
+			print "loop"
 
 #	print "New Location Set"
 	return peopleLocation2
@@ -66,8 +84,8 @@ def checkInfected(people, zombie):
 	personNumber=0
 	while personNumber < len(peopleLocation)-1:
 		personNumber+=1
-		for y in range(-2,2):
-			for x in range(-2,2):
+		for y in range(infectionRadius*-1,infectionRadius):
+			for x in range(infectionRadius*-1,infectionRadius):
 				for zombieCheck in zombieLocation:
 
 					try:
@@ -75,7 +93,7 @@ def checkInfected(people, zombie):
 						if peopleLocation[personNumber][0]+x==zombieCheck[0] and peopleLocation[personNumber][1]+y==zombieCheck[1]:
 							
 							#There is a 30% chance that someone will be infected if within range
-							if random.randint(1,10)>7: 
+							if random.randint(1,100)<infectionChance: 
 								zombieLocation.append(people[personNumber])
 								peopleLocation.pop(personNumber)
 #								print "Infected!"
@@ -131,16 +149,17 @@ zombieLocation=[peopleLocation[random.randint(0,numberOfPeople-1)]]
 
 #Initially, we just set the number of time steps to 1. You can change this
 for timeStep in range(7000):
+	#Vaccinate a random person every 3rd timeStep
+	if timeStep%3 == 0: vaccinate(); print timeStep
+
 	#Generate New Coordinates ie make everyone move
 	peopleLocation=generateNewLocation(peopleLocation)
 	zombieLocation=generateNewLocation(zombieLocation)
+	vaccLocation=generateNewLocation(vaccLocation)
 	#print "Step one\n\nLocation of all people:", peopleLocation, "\n\n"
 
 	#Check if anyone is infected
 	checkInfected(peopleLocation, zombieLocation)
-
-	#Vaccinate a random person every 3rd timeStep
-	if timeStep%3 == 0: vaccinate()
 
 	#Stop the movement of time when there are no non infected people
 	if len(peopleLocation) == 1:
@@ -149,8 +168,8 @@ for timeStep in range(7000):
 
 	#Plotting the points on a scatter plot
 	#Comment out to let program run much faster
-	plott.show()#
-	plotting(1)#
+#	plott.show()#
+#	plotting(1)#
 
 
 print len(peopleLocation),"*****************"
